@@ -1,0 +1,39 @@
+<meta charset="utf8" />
+<html>
+  <body>
+    Output is in Javascript console
+    <input type="file" id="dbFile">
+  </body>
+  <script src='sql-wasm.js'></script>
+  <script>
+    config = {
+      locateFile: filename => `/dist/${filename}`
+    }
+    initSqlJs(config).then(function(SQL){
+        dbFileElm=document.querySelector("#dbFile")
+        dbFileElm.onchange = () => {
+        const f = dbFileElm.files[0];
+        const r = new FileReader();
+        r.onload = function() {
+            const Uints = new Uint8Array(r.result);
+            db = new SQL.Database(Uints);
+            //const stmt = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='raws_numbers'");
+            //const stmt = db.prepare("SELECT * FROM sqlite_master;");
+            const stmt = db.prepare("SELECT * FROM user;");
+
+            console.log(stmt.getAsObject());
+            stmt.getAsObject(); // {col1:1, col2:111}
+
+            // Bind new values
+            stmt.bind();
+            while(stmt.step()) { //
+                const row = stmt.getAsObject();
+                console.log('Here is a row: ' + JSON.stringify(row));
+            }
+        }
+        r.readAsArrayBuffer(f);
+        
+    }
+    });
+  </script>
+</html>
